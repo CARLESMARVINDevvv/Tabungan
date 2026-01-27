@@ -125,23 +125,8 @@ class GuruController extends Controller
             ])->onlyInput('nip', 'password');
         }
 
-        // Login
-        // if (Auth::guard('guru')->attempt($credentials)) {
-        //     $request->session()->regenerate();
-
-        //     // Update status aktif
-        //     $guru->update([
-        //         'is_active' => true,
-        //         'last_active_at' => now(),
-        //     ]);
-
-        //     return redirect()->route('Teacher.dashboard');
-        // }
-
         if (Auth::guard('guru')->attempt($credentials)) {
             $request->session()->regenerate();
-
-            // Update status aktif aja, jangan sentuh last_active_at
             $guru->update([
                 'is_active' => true,
             ]);

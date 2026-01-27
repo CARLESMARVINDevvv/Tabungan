@@ -53,7 +53,7 @@ class SiswaController extends Controller
 
 
 
-    public function dashboard()
+        public function dashboard()
     {
         $siswa = Auth::guard('siswa')->user();
 

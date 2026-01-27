@@ -166,7 +166,6 @@ Route::middleware('auth:siswa')->prefix('Student')->name('Student.')->group(func
 
     // Rute untuk menandai notifikasi sebagai dibaca
     Route::patch('/notifikasi/{id}/read', [NotikasiController::class, 'markAsRead'])->name('markAsRead');
-
     // Route untuk notifikasi
     Route::get('/notifikasi', [SiswaController::class, 'notifikasi'])->name('notifikasi');
 });

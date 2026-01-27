@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
-    // User
     // public function Users(Request $request)
     // {
     //     $searchGuru = $request->input('search_guru');
@@ -154,7 +153,7 @@ class AdminController extends Controller
         foreach ($kelas as $itemKelas) {
             $tingkatKelas = $itemKelas->tingkat;
             $namaKelas = $itemKelas->nama_kelas;
-            $keyKelas = $tingkatKelas.' '.$namaKelas;
+            $keyKelas = $tingkatKelas . ' ' . $namaKelas;
 
             // tambahin ini buat export
             $kelasIds[$keyKelas] = $itemKelas->id;
@@ -164,28 +163,25 @@ class AdminController extends Controller
 
             // Data setoran
             $setoran = Tabungan::where('jenis_penarikan', 'setoran')
-                ->whereHas('siswa', fn ($q) => $q->where('kelas_id', $itemKelas->id))
+                ->whereHas('siswa', fn($q) => $q->where('kelas_id', $itemKelas->id))
                 ->sum('jumlah');
 
             // Data penarikan
             $penarikan = Tabungan::where('jenis_penarikan', 'penarikan')
-                ->whereHas('siswa', fn ($q) => $q->where('kelas_id', $itemKelas->id))
+                ->whereHas('siswa', fn($q) => $q->where('kelas_id', $itemKelas->id))
                 ->sum('jumlah');
 
             $saldo = $setoran - $penarikan;
-            $jumlahTransaksi = Tabungan::whereHas('siswa', fn ($q) => $q->where('kelas_id', $itemKelas->id))->count();
+            $jumlahTransaksi = Tabungan::whereHas('siswa', fn($q) => $q->where('kelas_id', $itemKelas->id))->count();
             $rataRataPerTransaksi = $jumlahTransaksi > 0 ? $saldo / $jumlahTransaksi : 0;
 
-            // $jumlahSiswa = Siswa::where('kelas_id', $itemKelas->id)
-            //     ->where('is_active', true)
-            //     ->whereHas('tabungan')
-            //     ->count();
+
 
             $jumlahSiswa = Siswa::where('kelas_id', $itemKelas->id)->count();
 
             // DETAIL SETORAN PER SISWA
             $setoranDetailsByKelas[$keyKelas] = Tabungan::where('jenis_penarikan', 'setoran')
-                ->whereHas('siswa', fn ($q) => $q->where('kelas_id', $itemKelas->id))
+                ->whereHas('siswa', fn($q) => $q->where('kelas_id', $itemKelas->id))
                 ->with('siswa')
                 ->get()
                 ->groupBy('siswa_id')
@@ -195,7 +191,7 @@ class AdminController extends Controller
                         'total' => $transactions->sum('jumlah'),
                         'count' => $transactions->count(),
                         // Cek jika rincian transaksi setoran terdeteksi dengan benar
-                        'rincian' => $transactions->map(fn ($t) => 'nabung('.number_format($t->jumlah, 0, ',', '.').')')->implode(', '),
+                        'rincian' => $transactions->map(fn($t) => 'nabung(' . number_format($t->jumlah, 0, ',', '.') . ')')->implode(', '),
                     ];
                 })
                 ->values()
@@ -203,7 +199,7 @@ class AdminController extends Controller
 
             // DETAIL PENARIKAN PER SISWA
             $penarikanDetailsByKelas[$keyKelas] = Tabungan::where('jenis_penarikan', 'penarikan')
-                ->whereHas('siswa', fn ($q) => $q->where('kelas_id', $itemKelas->id))
+                ->whereHas('siswa', fn($q) => $q->where('kelas_id', $itemKelas->id))
                 ->with('siswa')
                 ->get()
                 ->groupBy('siswa_id')
@@ -212,7 +208,7 @@ class AdminController extends Controller
                         'nama' => $transactions->first()->siswa->name,
                         'total' => $transactions->sum('jumlah'),
                         'count' => $transactions->count(),
-                        'rincian' => $transactions->map(fn ($t) => 'tarik('.number_format($t->jumlah, 0, ',', '.').')')->implode(', '),
+                        'rincian' => $transactions->map(fn($t) => 'tarik(' . number_format($t->jumlah, 0, ',', '.') . ')')->implode(', '),
                     ];
                 })
                 ->values()
@@ -269,7 +265,7 @@ class AdminController extends Controller
         ]);
 
         if (Auth::guard('admin')->attempt($credentials)) {
-            $request->session()->regenerate(); // keamanan sesi
+            $request->session()->regenerate();
 
             return redirect()->route('admin.dashboard');
         }
@@ -347,7 +343,7 @@ class AdminController extends Controller
         $request->validate([
             'nip' => 'required|min:18',
             'name' => 'required',
-            'email' => 'required|email|unique:gurus,email,'.$guru->id,
+            'email' => 'required|email|unique:gurus,email,' . $guru->id,
             'password' => 'nullable|min:8',
         ]);
 
@@ -413,7 +409,7 @@ class AdminController extends Controller
         $request->validate([
             'nis' => 'required|min:10',
             'name' => 'required',
-            'email' => 'required|email|unique:siswas,email,'.$siswa->id,
+            'email' => 'required|email|unique:siswas,email,' . $siswa->id,
             'password' => 'nullable|min:8',
             'kelas_id' => 'required|exists:kelas,id',
         ]);
@@ -442,25 +438,6 @@ class AdminController extends Controller
     }
 
     // Crud Kelas
-    // public function Kelas(Request $request)
-    // {
-    //     $totalSiswa = Siswa::count();
-
-    //     $kata_kunci = $request->input('kata_kunci');
-
-    //     // Ambil data kelas dengan jumlah siswa, dipaginasi, dan difilter berdasarkan kata kunci
-    //     $kelas = Kelas::withCount('siswas')
-    //         ->when($kata_kunci, function ($query, $kata_kunci) {
-    //             // Filter berdasarkan nama kelas atau jurusan
-    //             $query->where('nama_kelas', 'like', "%$kata_kunci%")
-    //                 ->orWhere('jurusan', 'like', "%$kata_kunci%")
-    //                 ->orWhere('id', 'like', "%$kata_kunci%")
-    //                 ->orWhere('tingkat', 'like', "%$kata_kunci%");
-    //         })
-    //         ->paginate(10);
-
-    //     return view('admin.managementkelas', compact('kelas', 'totalSiswa'));
-    // }
 
     public function Kelas(Request $request)
     {
@@ -535,11 +512,11 @@ class AdminController extends Controller
         $kelas = Kelas::findOrFail($id);
 
         $request->validate([
-            'nama_kelas' => 'required|unique:kelas,nama_kelas,'.$kelas->id,
+            'nama_kelas' => 'required|unique:kelas,nama_kelas,' . $kelas->id,
             'jurusan' => 'required',
             'tingkat' => 'required',
             // 'jumlah_siswa' => 'required',
-            'guru_id' => 'required|unique:kelas,guru_id,'.$kelas->id,
+            'guru_id' => 'required|unique:kelas,guru_id,' . $kelas->id,
 
         ]);
 
